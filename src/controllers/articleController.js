@@ -4,9 +4,9 @@ import { ObjectId } from 'mongodb';
 export const create = async (req, res, db) => {
     try {
         const image = req.file ? req.file.path : 'uploads/default.webp'
-        const { title, description, category  } = req.body
+        const { title, description, category, author, video  } = req.body
 
-        const result = await createArticle(db, { title, description, category, image })
+        const result = await createArticle(db, { title, description, category, image, author, video })
         if (result.acknowledged) {
             res.status(201).send({ message: "Artículo creado exitosamente", articleId: result.insertedId, imagePath: image })
         } else {
@@ -79,12 +79,14 @@ export const update = async (req, res, db) => {
     console.log('body', req.body)
     console.log('file', req.file)
     const { id } = req.params
-    const { title, description, category } = req.body
+    const { title, description, category, author, video } = req.body
 
     const data = {}
     if (title) data.title = title
     if (description) data.description = description
     if (category) data.category = category
+    if (author) data.author = author
+    if (video) data.video = video
     if (req.file) data.image = req.file.path
 
     console.log("Datos recibidos para actualizar", data)
