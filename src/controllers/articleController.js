@@ -3,12 +3,22 @@ import { ObjectId } from 'mongodb';
 
 export const create = async (req, res, db) => {
     try {
-        const image = req.file ? req.file.path : 'uploads/default.webp'
-        const { title, description, category, author, video  } = req.body
+        const image = req.file ? req.file.path : 'uploads/default.svg'
+        const { title, description, category, author, video } = req.body
 
         const result = await createArticle(db, { title, description, category, image, author, video })
         if (result.acknowledged) {
-            res.status(201).send({ message: "Artículo creado exitosamente", articleId: result.insertedId, imagePath: image })
+            const total = await db.collection('articles').countDocuments()
+            const totalPages = Math.ceil(total / 12)
+
+            res.status(201).send({
+                message: "Artículo creado exitosamente",
+                articleId: result.insertedId,
+                imagePath: image,
+                currentPage: Math.ceil(total / 12),
+                totalPages: totalPages
+            })
+
         } else {
             res.status(400).send({ error: "No se pudo crear el artículo" })
         }
