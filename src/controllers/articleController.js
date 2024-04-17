@@ -1,15 +1,23 @@
 import { createArticle, getAllArticles, getArticleById, updateArticle, deleteArticle } from '../models/article.js';
 import { ObjectId } from 'mongodb';
+import cloudinary from '../cloudinary/cloudinaryConfig.js';
 
 export const create = async (req, res, db) => {
     try {
-        const image = req.file ? req.file.path : 'uploads/default.svg'
         const { title, description, category, author, video } = req.body
+        let image
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path)
+            image = result.secure_url
+        } else {
+            image = process.env.CLOUDINARY_DEFAULT_IMAGE_URL
+        }
 
-        const result = await createArticle(db, { title, description, category, image, author, video })
+        const articleData = { title, description, category, image, author, video };
+        const result = await createArticle(db, articleData);
         if (result.acknowledged) {
-            const total = await db.collection('articles').countDocuments()
-            const totalPages = Math.ceil(total / 12)
+            const total = await db.collection('articles').countDocuments();
+            const totalPages = Math.ceil(total / 12);
 
             res.status(201).send({
                 message: "Artículo creado exitosamente",
@@ -17,14 +25,13 @@ export const create = async (req, res, db) => {
                 imagePath: image,
                 currentPage: Math.ceil(total / 12),
                 totalPages: totalPages
-            })
-
+            });
         } else {
-            res.status(400).send({ error: "No se pudo crear el artículo" })
+            res.status(400).send({ error: "No se pudo crear el artículo" });
         }
     } catch (error) {
-        console.error('Error al crear artículo', error)
-        res.status(500).send({ error: 'Error interno del servidor' })
+        console.error('Error al crear artículo', error);
+        res.status(500).send({ error: 'Error interno del servidor' });
     }
 }
 
@@ -86,20 +93,14 @@ export const getById = async (req, res, db) => {
 }
 
 export const update = async (req, res, db) => {
-    console.log('body', req.body)
-    console.log('file', req.file)
     const { id } = req.params
     const { title, description, category, author, video } = req.body
+    const data = { title, description, category, author, video }
 
-    const data = {}
-    if (title) data.title = title
-    if (description) data.description = description
-    if (category) data.category = category
-    if (author) data.author = author
-    if (video) data.video = video
-    if (req.file) data.image = req.file.path
-
-    console.log("Datos recibidos para actualizar", data)
+    if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path)
+        data.image = result.secure_url
+    }
 
     try {
         const result = await db.collection('articles').updateOne({ _id: new ObjectId(id) }, { $set: data })
