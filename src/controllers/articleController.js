@@ -10,7 +10,7 @@ export const create = async (req, res, db) => {
             const result = await cloudinary.uploader.upload(req.file.path)
             image = result.secure_url
         } else {
-            image = process.env.CLOUDINARY_DEFAULT_IMAGE_URL
+            image = process.env.CLOU_DEFAULT_IMAGE_URL
         }
 
         const articleData = { title, description, category, image, author, video };
