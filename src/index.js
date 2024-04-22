@@ -22,7 +22,7 @@ async function main() {
   try {
     await client.connect()
     console.log('Conectado a la base de datos')
-    const db = client.db('shifts')
+    const db = client.db('blog')
 
     app.use('/api/articles', articleRoutes(db))
     app.use('/api/subscribers', subscriberRoutes(db))
